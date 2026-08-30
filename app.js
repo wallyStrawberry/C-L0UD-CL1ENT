@@ -28,6 +28,14 @@ const profilesEl = document.querySelector('#profiles');
 const gridEl = document.querySelector('#libraryGrid');
 const toastEl = document.querySelector('#toast');
 const loginBackdrop = document.querySelector('#loginBackdrop');
+const browserMode = ['http:', 'https:'].includes(window.location.protocol);
+if (browserMode) {
+  document.body.classList.add('browser-mode');
+  document.querySelector('#pageLabel').textContent = 'Discover';
+  document.querySelector('#installLink').textContent = '↓ Install desktop app';
+  document.querySelector('.hero-section').remove();
+  document.querySelector('#accountButton').remove();
+}
 
 function renderProfiles() {
   profilesEl.innerHTML = profiles.map((profile, index) => `
@@ -51,7 +59,7 @@ function renderLibraries() {
     <article class="library-card">
       <div class="card-visual ${item.visual}"><span class="visual-glyph">${item.glyph}</span><span class="card-source">${item.source}</span></div>
       <h3>${item.name}</h3><p>${item.description}</p>
-      <div class="card-footer"><span>${item.type.toUpperCase()} · ${item.installs}</span><button class="install-button" data-library="${item.name}" aria-label="Add ${item.name}">+</button></div>
+      <div class="card-footer"><span>${item.type.toUpperCase()} · ${item.installs}</span><button class="install-button" data-library="${item.name}" aria-label="Install ${item.name}">Install</button></div>
     </article>`).join('') : '<p class="empty-state">No libraries found in this source.</p>';
   gridEl.querySelectorAll('.install-button').forEach(button => button.addEventListener('click', () => showToast(`${button.dataset.library} added to Vanilla Plus`)));
 }
@@ -76,7 +84,7 @@ document.querySelectorAll('.category-tab').forEach(tab => tab.addEventListener('
   renderLibraries();
 }));
 document.querySelector('#searchInput').addEventListener('input', renderLibraries);
-document.querySelector('#launchButton').addEventListener('click', () => {
+if (!browserMode) document.querySelector('#launchButton').addEventListener('click', () => {
   if (!signedIn) {
     loginBackdrop.hidden = false;
     return;
@@ -86,7 +94,7 @@ document.querySelector('#launchButton').addEventListener('click', () => {
   button.disabled = true; label.textContent = 'Preparing world...';
   window.setTimeout(() => { label.textContent = 'Launch profile'; button.disabled = false; showToast('Vanilla Plus is ready to play'); }, 1200);
 });
-document.querySelector('#accountButton').addEventListener('click', () => { loginBackdrop.hidden = false; });
+if (!browserMode) document.querySelector('#accountButton').addEventListener('click', () => { loginBackdrop.hidden = false; });
 document.querySelector('#closeLogin').addEventListener('click', () => { loginBackdrop.hidden = true; });
 document.querySelector('#microsoftButton').addEventListener('click', () => {
   const button = document.querySelector('#microsoftButton');
@@ -100,9 +108,14 @@ document.querySelector('#microsoftButton').addEventListener('click', () => {
     button.firstChild.textContent = 'Continue with Microsoft';
   }, 2200);
 });
+document.querySelector('#modrinthButton').addEventListener('click', () => {
+  document.querySelector('#loginStatus').textContent = 'Modrinth sign-in needs a registered OAuth client and redirect URL.';
+  showToast('Modrinth login needs OAuth setup');
+});
+document.querySelector('#installLink').addEventListener('click', () => showToast('Desktop app download will be available soon'));
 loginBackdrop.addEventListener('click', event => { if (event.target === loginBackdrop) loginBackdrop.hidden = true; });
 [document.querySelector('#addProfile'), document.querySelector('#addProfileBottom')].forEach(button => button.addEventListener('click', () => showToast('Profile creator is ready for your next modpack')));
-document.querySelector('#manageButton').addEventListener('click', () => showToast('Profile manager opened'));
+if (!browserMode) document.querySelector('#manageButton').addEventListener('click', () => showToast('Profile manager opened'));
 document.querySelector('#filterButton').addEventListener('click', () => showToast('Showing recommended libraries'));
 document.querySelector('#settingsButton').addEventListener('click', () => showToast('Settings opened'));
 renderProfiles();
