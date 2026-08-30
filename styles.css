@@ -18,7 +18,7 @@ button { border: 0; cursor: pointer; color: inherit; }
 .sidebar { width: 248px; min-height: 100vh; padding: 28px 18px 20px; border-right: 1px solid var(--line); background: #0e1111; display: flex; flex-direction: column; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 12px; letter-spacing: .1em; margin: 0 10px 57px; }
 .brand em { color: var(--lime); font-style: normal; }
-.brand-logo { width: 28px; height: 28px; display: block; }
+.brand-logo { width: 28px; height: 28px; display: block; flex: 0 0 auto; }
 .profile-heading, .section-header, .library-toolbar, .topbar, .top-actions, .hero-actions, .hero-meta, .crumb, .profile-item, .source-tab, .sidebar-footer, .status-dot { display: flex; align-items: center; }
 .profile-heading { justify-content: space-between; padding: 0 10px 13px; color: #68716d; font: 500 10px 'DM Mono', monospace; letter-spacing: .08em; }
 .icon-button { background: transparent; color: #84908b; font-size: 23px; line-height: 1; }
