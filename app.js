@@ -28,6 +28,11 @@ const profilesEl = document.querySelector('#profiles');
 const gridEl = document.querySelector('#libraryGrid');
 const toastEl = document.querySelector('#toast');
 const loginBackdrop = document.querySelector('#loginBackdrop');
+const browserMode = ['http:', 'https:'].includes(window.location.protocol);
+if (browserMode) {
+  document.body.classList.add('browser-mode');
+  document.querySelector('#pageLabel').textContent = 'Discover';
+}
 
 function renderProfiles() {
   profilesEl.innerHTML = profiles.map((profile, index) => `
