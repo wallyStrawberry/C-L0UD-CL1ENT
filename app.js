@@ -1,4 +1,4 @@
-const profiles = [
+let profiles = [
   { name: 'Vanilla Plus', version: 'Fabric 1.21.1', glyph: 'VP' },
   { name: 'Sky Factory', version: 'Forge 1.20.1', glyph: 'SF' },
   { name: 'Adventure', version: 'Fabric 1.20.4', glyph: 'AD' }
@@ -27,6 +27,7 @@ let currentOffset = 0;
 let loadingCatalog = false;
 let liveItems = [];
 let signedIn = false;
+let selectedProfileName = profiles[0].name;
 const profilesEl = document.querySelector('#profiles');
 const gridEl = document.querySelector('#libraryGrid');
 const toastEl = document.querySelector('#toast');
@@ -49,9 +50,19 @@ function renderProfiles() {
   profilesEl.querySelectorAll('.profile-item').forEach(button => button.addEventListener('click', () => {
     profilesEl.querySelectorAll('.profile-item').forEach(item => item.classList.remove('active'));
     button.classList.add('active');
+    selectedProfileName = button.dataset.profile;
     document.querySelector('#profileTitle').textContent = button.dataset.profile;
     showToast(`${button.dataset.profile} profile selected`);
   }));
+}
+
+async function initializeDesktopProfiles() {
+  if (browserMode || !window.cloudClient?.loadProfiles) return;
+  const savedProfiles = await window.cloudClient.loadProfiles();
+  if (savedProfiles?.length) {
+    profiles = savedProfiles;
+    renderProfiles();
+  }
 }
 
 function renderLibraries() {
@@ -63,11 +74,26 @@ function renderLibraries() {
     <article class="library-card">
       <div class="card-visual ${item.visual}"${item.icon ? ` style="background-image: linear-gradient(90deg, rgba(10, 14, 13, .42), rgba(10, 14, 13, .72)), url('${item.icon}')"` : ''}>
         <span class="card-source">${item.source}</span>
+      </div>
       <h3>${item.name}</h3><p>${item.description}</p>
       <div class="card-footer"><span>${item.type.toUpperCase()} · ${item.installs}</span><button class="install-button" data-library="${item.name}" aria-label="Install ${item.name}">Install</button></div>
     </article>`).join('') : '<p class="empty-state">No libraries found in this source.</p>';
   document.querySelector('#loadMore').hidden = loadingCatalog || selectedSource === 'CurseForge';
-  gridEl.querySelectorAll('.install-button').forEach(button => button.addEventListener('click', () => showToast(`${button.dataset.library} added to Vanilla Plus`)));
+  gridEl.querySelectorAll('.install-button').forEach(button => button.addEventListener('click', async () => {
+    const item = visible.find(candidate => candidate.name === button.dataset.library);
+    if (!item?.projectId) return showToast(`${button.dataset.library} does not have a download link yet`);
+    if (browserMode) {
+      const typePath = item.type.toLowerCase() === 'modpack' ? 'modpacks' : item.type.toLowerCase() === 'shader' ? 'shaders' : item.type.toLowerCase() === 'resource packs' ? 'resourcepacks' : 'mods';
+      window.open(`https://modrinth.com/${typePath}/${item.projectId}`, '_blank', 'noopener');
+      return;
+    }
+    button.disabled = true;
+    button.textContent = '...';
+    const result = await window.cloudClient.installModrinth({ projectId: item.projectId, profileName: selectedProfileName });
+    button.disabled = false;
+    button.textContent = 'Install';
+    showToast(result.success ? `${item.name} installed in ${selectedProfileName}` : result.message);
+  }));
 }
 
 async function loadModrinth(reset = false) {
@@ -83,7 +109,7 @@ async function loadModrinth(reset = false) {
     if (!response.ok) throw new Error('Modrinth request failed');
     const data = await response.json();
     const results = data.hits.map(item => ({
-      name: item.title, description: item.description || 'Modrinth project', source: 'Modrinth', type: projectType === 'mod' ? 'Mod' : selectedCategory, glyph: item.title.slice(0, 2).toUpperCase(), visual: 'visual-foliage', installs: `${(item.downloads / 1000000).toFixed(1)}M`, icon: item.icon_url
+      name: item.title, description: item.description || 'Modrinth project', source: 'Modrinth', type: projectType === 'mod' ? 'Mod' : selectedCategory, glyph: item.title.slice(0, 2).toUpperCase(), visual: 'visual-foliage', installs: `${(item.downloads / 1000000).toFixed(1)}M`, icon: item.icon_url, projectId: item.project_id
     }));
     liveItems = reset ? results : [...liveItems, ...results];
     currentOffset += results.length;
@@ -148,10 +174,20 @@ document.querySelector('#modrinthButton').addEventListener('click', () => {
 });
 document.querySelector('#installLink').addEventListener('click', () => showToast('Desktop app download will be available soon'));
 loginBackdrop.addEventListener('click', event => { if (event.target === loginBackdrop) loginBackdrop.hidden = true; });
-[document.querySelector('#addProfile'), document.querySelector('#addProfileBottom')].forEach(button => button.addEventListener('click', () => showToast('Profile creator is ready for your next modpack')));
+[document.querySelector('#addProfile'), document.querySelector('#addProfileBottom')].forEach(button => button.addEventListener('click', async () => {
+  if (browserMode) return showToast('Install the desktop app to create profiles');
+  const name = window.prompt('Profile name');
+  if (!name?.trim()) return;
+  profiles.push({ name: name.trim(), version: 'Fabric 1.21.1', glyph: name.trim().slice(0, 2).toUpperCase() });
+  const saved = await window.cloudClient.saveProfiles(profiles);
+  if (!saved) return showToast('Profile could not be saved');
+  renderProfiles();
+  showToast(`${name.trim()} profile created`);
+}));
 if (!browserMode) document.querySelector('#manageButton').addEventListener('click', () => showToast('Profile manager opened'));
 document.querySelector('#filterButton').addEventListener('click', () => showToast('Showing recommended libraries'));
 document.querySelector('#settingsButton').addEventListener('click', () => showToast('Settings opened'));
 renderProfiles();
+initializeDesktopProfiles();
 loadModrinth(true);
 
