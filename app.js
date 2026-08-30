@@ -23,6 +23,9 @@ const modpacks = [
 
 let selectedSource = 'All';
 let selectedCategory = 'Mods';
+let currentOffset = 0;
+let loadingCatalog = false;
+let liveItems = [];
 let signedIn = false;
 const profilesEl = document.querySelector('#profiles');
 const gridEl = document.querySelector('#libraryGrid');
@@ -53,15 +56,44 @@ function renderProfiles() {
 
 function renderLibraries() {
   const query = document.querySelector('#searchInput').value.toLowerCase();
-  const items = selectedCategory === 'Modpacks' ? modpacks : libraries.filter(item => selectedCategory === 'Mods' || item.type === selectedCategory);
+  const fallbackItems = selectedCategory === 'Modpacks' ? modpacks : libraries.filter(item => selectedCategory === 'Mods' || item.type === selectedCategory);
+  const items = liveItems.length ? [...liveItems, ...fallbackItems.filter(item => item.source === 'CurseForge')] : fallbackItems;
   const visible = items.filter(item => (selectedSource === 'All' || item.source === selectedSource) && `${item.name} ${item.description} ${item.type}`.toLowerCase().includes(query));
   gridEl.innerHTML = visible.length ? visible.map(item => `
     <article class="library-card">
-      <div class="card-visual ${item.visual}"><span class="visual-glyph">${item.glyph}</span><span class="card-source">${item.source}</span></div>
+      <div class="card-visual ${item.visual}"${item.icon ? ` style="background-image: linear-gradient(90deg, rgba(10, 14, 13, .42), rgba(10, 14, 13, .72)), url('${item.icon}')"` : ''}>
+        <span class="card-source">${item.source}</span>
       <h3>${item.name}</h3><p>${item.description}</p>
       <div class="card-footer"><span>${item.type.toUpperCase()} · ${item.installs}</span><button class="install-button" data-library="${item.name}" aria-label="Install ${item.name}">Install</button></div>
     </article>`).join('') : '<p class="empty-state">No libraries found in this source.</p>';
+  document.querySelector('#loadMore').hidden = loadingCatalog || selectedSource === 'CurseForge';
   gridEl.querySelectorAll('.install-button').forEach(button => button.addEventListener('click', () => showToast(`${button.dataset.library} added to Vanilla Plus`)));
+}
+
+async function loadModrinth(reset = false) {
+  if (loadingCatalog || selectedSource === 'CurseForge') return;
+  loadingCatalog = true;
+  if (reset) { currentOffset = 0; liveItems = []; }
+  renderLibraries();
+  const projectType = selectedCategory === 'Modpacks' ? 'modpack' : selectedCategory === 'Shaders' ? 'shader' : selectedCategory === 'Resource Packs' ? 'resourcepack' : 'mod';
+  const query = encodeURIComponent(document.querySelector('#searchInput').value.trim());
+  const facets = encodeURIComponent(JSON.stringify([[`project_type:${projectType}`]]));
+  try {
+    const response = await fetch(`https://api.modrinth.com/v2/search?query=${query}&facets=${facets}&limit=24&offset=${currentOffset}&index=downloads`);
+    if (!response.ok) throw new Error('Modrinth request failed');
+    const data = await response.json();
+    const results = data.hits.map(item => ({
+      name: item.title, description: item.description || 'Modrinth project', source: 'Modrinth', type: projectType === 'mod' ? 'Mod' : selectedCategory, glyph: item.title.slice(0, 2).toUpperCase(), visual: 'visual-foliage', installs: `${(item.downloads / 1000000).toFixed(1)}M`, icon: item.icon_url
+    }));
+    liveItems = reset ? results : [...liveItems, ...results];
+    currentOffset += results.length;
+    document.querySelector('#loadMore').hidden = results.length < 24;
+  } catch (error) {
+    showToast('Live Modrinth results unavailable');
+  } finally {
+    loadingCatalog = false;
+    renderLibraries();
+  }
 }
 
 function showToast(message) {
@@ -75,15 +107,17 @@ document.querySelectorAll('.source-tab').forEach(tab => tab.addEventListener('cl
   selectedSource = tab.dataset.source;
   document.querySelectorAll('.source-tab').forEach(item => item.classList.remove('active'));
   tab.classList.add('active');
-  renderLibraries();
+  loadModrinth(true);
 }));
 document.querySelectorAll('.category-tab').forEach(tab => tab.addEventListener('click', () => {
   selectedCategory = tab.dataset.category;
   document.querySelectorAll('.category-tab').forEach(item => item.classList.remove('active'));
   tab.classList.add('active');
-  renderLibraries();
+  loadModrinth(true);
 }));
-document.querySelector('#searchInput').addEventListener('input', renderLibraries);
+let searchTimer;
+document.querySelector('#searchInput').addEventListener('input', () => { window.clearTimeout(searchTimer); searchTimer = window.setTimeout(() => loadModrinth(true), 350); });
+document.querySelector('#loadMore').addEventListener('click', () => loadModrinth());
 if (!browserMode) document.querySelector('#launchButton').addEventListener('click', () => {
   if (!signedIn) {
     loginBackdrop.hidden = false;
@@ -119,4 +153,5 @@ if (!browserMode) document.querySelector('#manageButton').addEventListener('clic
 document.querySelector('#filterButton').addEventListener('click', () => showToast('Showing recommended libraries'));
 document.querySelector('#settingsButton').addEventListener('click', () => showToast('Settings opened'));
 renderProfiles();
-renderLibraries();
+loadModrinth(true);
+
