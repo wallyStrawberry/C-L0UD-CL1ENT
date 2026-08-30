@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C-L0UD CL1ENT | Modded Minecraft launcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">C</span><span>C-L0UD <em>CL1ENT</em></span></div>
+      <div class="profile-heading"><span>YOUR PROFILES</span><button class="icon-button" id="addProfile" aria-label="Add profile">+</button></div>
+      <button class="discover-link active" id="discoverButton"><span>✦</span> Discover</button>
+      <nav class="profiles" id="profiles"></nav>
+      <button class="add-profile" id="addProfileBottom"><span>+</span> Add profile</button>
+      <div class="sidebar-footer">
+        <div class="status-dot"><span></span> Services operational</div>
+        <button class="footer-link" id="settingsButton">&#9881; Settings</button>
+        <button class="footer-link">? Help center <small>↗</small></button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="crumb"><span class="green-pulse"></span> C-L0UD CL1ENT <b>/</b> Profiles</div>
+        <div class="top-actions"><button class="download-link">&#8595; Download client</button><button class="account-button" id="accountButton"><span class="avatar">?</span><span id="accountLabel">Sign in</span></button></div>
+      </header>
+
+      <section class="hero-section">
+        <div class="hero-copy">
+          <p class="eyebrow">PROFILE WORKSPACE <span>01</span></p>
+          <h1 id="profileTitle">Vanilla Plus</h1>
+          <p class="hero-description">A clean, performance-first setup for building and exploring. Keep your worlds, mods, and settings in one place.</p>
+          <div class="hero-meta"><span>Fabric 1.21.1</span><i></i><span>Last played 2h ago</span><i></i><span>8 mods</span></div>
+          <div class="hero-actions"><button class="launch-button" id="launchButton"><span class="play-icon">▶</span><span id="launchLabel">Launch profile</span></button><button class="secondary-button" id="manageButton">Manage profile <span>→</span></button></div>
+        </div>
+        <div class="hero-art" aria-label="Abstract Minecraft world artwork">
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="cube cube-one"></div><div class="cube cube-two"></div><div class="terrain terrain-back"></div><div class="terrain terrain-front"></div>
+          <div class="art-label"><span>ACTIVE PROFILE</span><strong>VP_01</strong></div>
+        </div>
+      </section>
+
+      <section class="content-section">
+        <div class="section-header"><div><p class="eyebrow">EXPLORE THE ECOSYSTEM</p><h2>Discover</h2></div><button class="view-button">View all <span>↗</span></button></div>
+        <div class="category-tabs" role="tablist"><button class="category-tab active" data-category="Mods">Mods <span>1,248</span></button><button class="category-tab" data-category="Modpacks">Modpacks <span>186</span></button><button class="category-tab" data-category="Shaders">Shaders <span>94</span></button><button class="category-tab" data-category="Resource Packs">Resource packs <span>321</span></button></div>
+        <div class="source-tabs" role="tablist"><button class="source-tab active" data-source="All">Unified feed <span>24</span></button><button class="source-tab curseforge" data-source="CurseForge"><span class="source-dot orange"></span>CurseForge <span>12</span></button><button class="source-tab modrinth" data-source="Modrinth"><span class="source-dot green"></span>Modrinth <span>12</span></button></div>
+        <div class="library-toolbar"><label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="Search mods, shaders, resource packs..." aria-label="Search libraries"></label><button class="filter-button" id="filterButton">Filters <span>⌄</span></button></div>
+        <div class="library-grid" id="libraryGrid"></div>
+      </section>
+    </main>
+
+    <div class="login-backdrop" id="loginBackdrop" hidden>
+      <section class="login-modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <button class="modal-close" id="closeLogin" aria-label="Close sign in dialog">&#10005;</button>
+        <div class="microsoft-mark"><i></i><i></i><i></i><i></i></div>
+        <p class="eyebrow">ACCOUNT CONNECTION</p>
+        <h2 id="loginTitle">Sign in with Microsoft</h2>
+        <p class="login-copy">Connect your Microsoft account to verify Minecraft ownership and launch your profiles.</p>
+        <button class="microsoft-button" id="microsoftButton">Continue with Microsoft <span>→</span></button>
+        <p class="login-note" id="loginStatus">Live sign-in needs a Microsoft app registration before it can connect an account.</p>
+      </section>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
