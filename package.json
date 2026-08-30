@@ -1,0 +1,33 @@
+{
+  "name": "c-l0ud-client",
+  "version": "0.1.0",
+  "description": "C-L0UD CL1ENT desktop Minecraft launcher",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "prepackage": "node scripts/make-icon.js",
+    "package": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
+    "png-to-ico": "^3.0.2",
+    "sharp": "^0.35.4"
+  },
+  "build": {
+    "appId": "com.cloudclient.launcher",
+    "productName": "C-L0UD CL1ENT",
+    "executableName": "C-L0UD-CL1ENT",
+    "artifactName": "C-L0UD-CL1ENT-Setup.${version}.${ext}",
+    "icon": "logo.ico",
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "main.js",
+      "preload.js",
+      "logo.svg",
+      "logo.ico"
+    ]
+  }
+}
