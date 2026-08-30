@@ -190,4 +190,3 @@ document.querySelector('#settingsButton').addEventListener('click', () => showTo
 renderProfiles();
 initializeDesktopProfiles();
 loadModrinth(true);
-
